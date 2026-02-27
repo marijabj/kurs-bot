@@ -719,7 +719,7 @@ def validate_request(parts):
     # ===== PROVERA KURSA PREMA ADMIN POSTAVLJENOM =====
     current_rate = get_rate()  # (buy, sell, updated_at)
     if current_rate is None:
-        return "❌ Kurs nije postavljen." + admin_contact_text(), parse_mode="HTML"
+        return "❌ Kurs nije postavljen."
 
     buy, sell, _ = current_rate
     if not (buy <= kurs <= sell):
