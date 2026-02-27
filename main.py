@@ -114,6 +114,8 @@ def get_rate():
     cur.execute("SELECT buy_rate, sell_rate, updated_at FROM rate WHERE id=1")
     r = cur.fetchone()
     con.close()
+    if not r or r[0] is None or r[1] is None:
+        return None
     return r
 
 def get_locations():
@@ -631,6 +633,11 @@ async def kurs_get(update, ctx):
     buy, sell, time_str = k
 
     # proveri da li je kurs postavljen danas
+    if not buy or not sell or not time_str:
+        return await update.message.reply_text(
+            "❌ Kurs još nije postavljen danas." + admin_contact_text(), parse_mode="HTML"
+        )
+        
     try:
         dt = datetime.fromisoformat(time_str)
         today = datetime.now().date()
