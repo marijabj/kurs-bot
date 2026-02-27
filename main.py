@@ -337,7 +337,7 @@ async def add_user(update, ctx):
 
     # only admin
     if not is_admin(uid):
-        return await update.message.reply_text("❌ Nemate prava pristupa." + admin_contact_text(), parse_mode="HTML"
+        return await update.message.reply_text("❌ Nemate prava pristupa." + admin_contact_text(), parse_mode="HTML")
 
     if len(ctx.args) < 3:
         return await update.message.reply_text(
