@@ -639,27 +639,30 @@ async def kurs_get(update, ctx):
         )
         
     try:
-        dt = datetime.fromisoformat(time_str)
-        today = datetime.now().date()
-        if dt.date() != today:
-            return await update.message.reply_text(
-                "❌ Kurs još nije postavljen danas." + admin_contact_text(), parse_mode="HTML"
-            )
-        formatted_time = dt.strftime("%d.%m.%Y. %H:%M")
-    except:
-        # fallback, ako format datuma nije dobar
-        formatted_time = time_str
+    	dt = datetime.fromisoformat(str(time_str))
+    	today = datetime.now().date()
 
-    await update.message.reply_text(
-        f"💱 Kurs evra:\n"
-        f"Kupovni: {buy}\n"
-        f"Prodajni: {sell}\n"
-        f"Ažurirano: {formatted_time}\n\n"
-        "Unesite zahtev u formatu:\n"
-        "IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
-        "Primer:\n"
-        "1000,EUR,117.2,18.00"
-    )
+    	if dt.date() != today:
+		return await update.message.reply_text(
+	 	   "❌ Kurs još nije postavljen danas." + admin_contact_text(),
+	  	  parse_mode="HTML"
+		)
+
+    	formatted_time = dt.strftime("%d.%m.%Y. %H:%M")
+
+    except:
+    	formatted_time = time_str
+
+	await update.message.reply_text(
+		f"💱 Kurs evra:\n"
+		f"Kupovni: {buy}\n"
+		f"Prodajni: {sell}\n"
+		f"Ažurirano: {formatted_time}\n\n"
+		"Unesite zahtev u formatu:\n"
+		"IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
+		"Primer:\n"
+		"1000,EUR,117.2,18.00"
+	)
 
 async def kurs_evra(update, ctx):
     uid = update.effective_user.id
@@ -743,10 +746,16 @@ def validate_request(parts):
     if not (buy <= kurs <= sell):
         return f"❌ Kurs mora biti između trenutnog kupovnog i prodajnog kursa:\nKupovni={buy}, Prodajni={sell}"
 
-    # vreme hh:mm
+    # ===== VREME VALIDACIJA =====
     time_str = parts[3]
-    if not re.match(r"^\d{2}.\d{2}$", time_str):
-        return "❌ Vreme mora biti u formatu HH.MM."
+
+    # Ako je uneo :
+    if ":" in time_str:
+        return "❌ Vreme mora biti u formatu HH.MM (koristite tačku, ne dvotačku).\nPrimer: 15.00"
+
+    # Regex za HH.MM
+    if not re.match(r"^\d{2}\.\d{2}$", time_str):
+        return "❌ Vreme mora biti u formatu HH.MM.\nPrimer: 15.00"
 
     hh, mm = map(int, time_str.split("."))
     if not (0 <= hh <= 23 and 0 <= mm <= 59):
