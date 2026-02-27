@@ -673,7 +673,10 @@ async def kurs_evra(update, ctx):
         return await update.message.reply_text(
             "Format: /kurs_evra BUY SELL\nPrimer: /kurs_evra 117.2 118.0"
         )
-        
+    
+    buy_str = ctx.args[0]
+    sell_str = ctx.args[1]
+    
     # Provera da li korisnik koristi zarez
     if "," in buy_str or "," in sell_str:
         return await update.message.reply_text(
@@ -682,10 +685,11 @@ async def kurs_evra(update, ctx):
         )
 
     try:
-        buy = float(ctx.args[0])
-        sell = float(ctx.args[1])
+        buy = float(buy_str)
+        sell = float(sell_str)
     except ValueError:
         return await update.message.reply_text("❌ Kurs mora biti broj.")
+
 
     # ===== BASIC LOGIC CHECK =====
     if buy >= sell:
