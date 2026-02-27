@@ -673,6 +673,13 @@ async def kurs_evra(update, ctx):
         return await update.message.reply_text(
             "Format: /kurs_evra BUY SELL\nPrimer: /kurs_evra 117.2 118.0"
         )
+        
+    # Provera da li korisnik koristi zarez
+    if "," in buy_str or "," in sell_str:
+        return await update.message.reply_text(
+            "❌ Koristite tačku (.) kao decimalni separator, a ne zarez (,).\n"
+            "Primer: /kurs_evra 117.25 118.0"
+        )
 
     try:
         buy = float(ctx.args[0])
