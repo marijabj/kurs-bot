@@ -10,19 +10,21 @@ TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 8575573468
 
 # ===== RATE SAFETY LIMITS =====
-MIN_BUY_RATE = 115      # 115 RSD za 1 EUR
-MAX_BUY_RATE = 122     # 122 RSD za 1 EUR
+MIN_BUY_RATE = 115  # 115 RSD za 1 EUR
+MAX_BUY_RATE = 122  # 122 RSD za 1 EUR
 
-MIN_SPREAD = 0.1        # minimalna razlika buy/sell
-MAX_SPREAD = 4.0        # maksimalna razlika buy/sell
+MIN_SPREAD = 0.1  # minimalna razlika buy/sell
+MAX_SPREAD = 4.0  # maksimalna razlika buy/sell
 
 # ===== GLOBAL CONFIRM STORAGE =====
 pending_confirm = {}
+
 
 # ================= DB ==================
 
 def db():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
+
 
 def init_db():
     con = db()
@@ -91,6 +93,7 @@ def init_db():
     con.commit()
     con.close()
 
+
 # ================= HELPERS ==================
 
 def get_user(user_id):
@@ -101,12 +104,15 @@ def get_user(user_id):
     con.close()
     return r  # (role, is_active) or None
 
+
 def get_role(uid):
     u = get_user(uid)
     return u[0] if u and u[1] == 1 else None
 
+
 def is_admin(uid):
     return get_role(uid) == "ADMIN"
+
 
 def get_rate():
     con = db()
@@ -118,6 +124,7 @@ def get_rate():
         return None
     return r
 
+
 def get_locations():
     con = db()
     cur = con.cursor()
@@ -125,6 +132,7 @@ def get_locations():
     r = [x[0] for x in cur.fetchall()]
     con.close()
     return r
+
 
 # ================= CONFIRM HANDLER ==================
 
@@ -213,16 +221,19 @@ async def confirm_handler(update: Update, ctx):
         con.close()
         return await query.edit_message_text("✅ Zahtev je poslat adminu.")
 
+
 # ================= COMMANDS ADMIN ==================
 
 def admin_contact_text():
     return f'\n\n📩 <a href="tg://user?id={ADMIN_ID}">Kontaktirajte admina</a>'
+
 
 def confirm_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("✅ Potvrdi", callback_data="CONFIRM")],
         [InlineKeyboardButton("❌ Otkaži", callback_data="CANCEL")]
     ])
+
 
 async def unknown_command(update, ctx):
     uid = update.effective_user.id
@@ -246,31 +257,33 @@ async def unknown_command(update, ctx):
 
     await update.message.reply_text(msg)
 
+
 def get_admin_commands():
     return (
         """
         /kurs_evra BUY_RATE SELL_RATE  
         ➡️ Postavlja dnevni kupovni i prodajni kurs evra i pamti vreme izmene.
-        
+
         /add TELEGRAM_ID ROLE USERNAME
         ➡️ Dodaje novog korisnika u sistem.
-        
+
         /delete TELEGRAM_ID  
         ➡️ Briše korisnika iz sistema.
-        
+
         /list_users  
         ➡️ Prikazuje sve korisnike u bazi.
-        
+
         /add_location NAZIV_LOKACIJE  
         ➡️ Dodaje novu lokaciju.
-        
+
         /list_locations  
         ➡️ Prikazuje sve lokacije i njihov status (active/deactivated).
-        
+
         /help  
         ➡️ Lista komandi dostupnih adminu.
         """
     )
+
 
 async def admin_start(update, ctx):
     uid = update.effective_user.id
@@ -284,27 +297,27 @@ async def admin_start(update, ctx):
 
     msg = """
         👋 Dobrodošli, ADMIN!
-        
+
         Dostupne komande:
-        
+
         /kurs_evra BUY_RATE SELL_RATE  
         ➡️ Postavlja dnevni kupovni i prodajni kurs evra i pamti vreme izmene.
-        
+
         /add TELEGRAM_ID ROLE USERNAME  
         ➡️ Dodaje novog korisnika u sistem.
-        
+
         /delete TELEGRAM_ID  
         ➡️ Briše korisnika iz sistema.
-        
+
         /list_users  
         ➡️ Prikazuje sve korisnike u bazi.
-        
+
         /add_location NAZIV_LOKACIJE  
         ➡️ Dodaje novu lokaciju.
-        
+
         /list_locations  
         ➡️ Prikazuje sve lokacije i njihov status (active/deactivated).
-        
+
         /help  
         ➡️ Lista komandi dostupnih adminu.
         """
@@ -333,6 +346,7 @@ async def kurs_set(update, ctx):
     con.close()
 
     await update.message.reply_text("✅ Dnevni kurs evra je ažuriran.")
+
 
 async def add_user(update, ctx):
     uid = update.effective_user.id
@@ -374,6 +388,7 @@ async def add_user(update, ctx):
         reply_markup=confirm_keyboard()
     )
 
+
 async def del_user(update, ctx):
     uid = update.effective_user.id
 
@@ -408,6 +423,7 @@ async def del_user(update, ctx):
         reply_markup=confirm_keyboard()
     )
 
+
 async def list_users(update, ctx):
     uid = update.effective_user.id
 
@@ -426,6 +442,7 @@ async def list_users(update, ctx):
         msg += f"• ID: <code>{tgid}</code>\n  Role: {role}\n  Username: @{username}\n\n"
 
     await update.message.reply_text(msg, parse_mode="HTML")
+
 
 async def add_location(update, ctx):
     uid = update.effective_user.id
@@ -452,6 +469,7 @@ async def add_location(update, ctx):
         reply_markup=confirm_keyboard()
     )
 
+
 def admin_locations_keyboard(rows):
     keyboard = []
 
@@ -471,6 +489,7 @@ def admin_locations_keyboard(rows):
         ])
 
     return InlineKeyboardMarkup(keyboard)
+
 
 async def list_locations(update, ctx):
     uid = update.effective_user.id
@@ -502,6 +521,7 @@ async def list_locations(update, ctx):
         reply_markup=admin_locations_keyboard(rows),
         parse_mode="Markdown"
     )
+
 
 async def admin_location_toggle_handler(update: Update, ctx):
     query = update.callback_query
@@ -547,48 +567,51 @@ async def admin_location_toggle_handler(update: Update, ctx):
         parse_mode="Markdown"
     )
 
+
 async def admin_help(update, ctx):
     if not is_admin(update.effective_user.id):
         return
     msg = """
         Dostupne komande:
-        
+
         /kurs_evra BUY_RATE SELL_RATE  
         ➡️ Postavlja dnevni kupovni i prodajni kurs evra i pamti vreme izmene.
-        
+
         /add TELEGRAM_ID ROLE USERNAME
         ➡️ Dodaje novog korisnika u sistem.
-        
+
         /delete TELEGRAM_ID  
         ➡️ Briše korisnika iz sistema.
-        
+
         /list_users  
         ➡️ Prikazuje sve korisnike u bazi.
-        
+
         /add_location NAZIV_LOKACIJE  
         ➡️ Dodaje novu lokaciju.
-        
+
         /list_locations  
         ➡️ Prikazuje sve lokacije i njihov status (active/deactivated).
         """
     await update.message.reply_text(msg)
 
+
 # ================= USER ==================
 
 def get_user_commands():
     return (
-         """
-        /kurs_evra  
-        ➡️ Prikazuje trenutni kurs evra i datum ažuriranja.
-        ➡️ Nakon toga unosite zahtev u formatu:
-           IZNOS,EUR/RSD,KURS,ROK
-        
-        Primer:
-        1000,EUR,117.2,18.00
-        
-        Zatim birate lokaciju i potvrđujete zahtev.
         """
+       /kurs_evra  
+       ➡️ Prikazuje trenutni kurs evra i datum ažuriranja.
+       ➡️ Nakon toga unosite zahtev u formatu:
+          IZNOS,EUR/RSD,KURS,ROK
+
+       Primer:
+       1000,EUR,117.2,18.00
+
+       Zatim birate lokaciju i potvrđujete zahtev.
+       """
     )
+
 
 async def start(update, ctx):
     uid = update.effective_user.id
@@ -605,17 +628,17 @@ async def start(update, ctx):
 
     msg = """
         👋 Dobrodošli, USER!
-        
+
         Dostupne komande:
-        
+
         /kurs_evra  
         ➡️ Prikazuje trenutni kurs evra i datum ažuriranja.
         ➡️ Nakon toga unosite zahtev u formatu:
            IZNOS,EUR/RSD,KURS,ROK
-        
+
         Primer:
         1000,EUR,117.2,18.00
-        
+
         Zatim birate lokaciju i potvrđujete zahtev.
         """
     await update.message.reply_text(msg)
@@ -637,32 +660,33 @@ async def kurs_get(update, ctx):
         return await update.message.reply_text(
             "❌ Kurs još nije postavljen danas." + admin_contact_text(), parse_mode="HTML"
         )
-        
+
     try:
-    	dt = datetime.fromisoformat(str(time_str))
-    	today = datetime.now().date()
+        dt = datetime.fromisoformat(str(time_str))
+        today = datetime.now().date()
 
-    	if dt.date() != today:
-		return await update.message.reply_text(
-	 	   "❌ Kurs još nije postavljen danas." + admin_contact_text(),
-	  	  parse_mode="HTML"
-		)
+        if dt.date() != today:
+            return await update.message.reply_text(
+                "❌ Kurs još nije postavljen danas." + admin_contact_text(),
+                parse_mode="HTML"
+            )
 
-    	formatted_time = dt.strftime("%d.%m.%Y. %H:%M")
+        formatted_time = dt.strftime("%d.%m.%Y. %H:%M")
 
     except:
-    	formatted_time = time_str
+        formatted_time = time_str
 
-	await update.message.reply_text(
-		f"💱 Kurs evra:\n"
-		f"Kupovni: {buy}\n"
-		f"Prodajni: {sell}\n"
-		f"Ažurirano: {formatted_time}\n\n"
-		"Unesite zahtev u formatu:\n"
-		"IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
-		"Primer:\n"
-		"1000,EUR,117.2,18.00"
-	)
+    await update.message.reply_text(
+        f"💱 Kurs evra:\n"
+        f"Kupovni: {buy}\n"
+        f"Prodajni: {sell}\n"
+        f"Ažurirano: {formatted_time}\n\n"
+        "Unesite zahtev u formatu:\n"
+        "IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
+        "Primer:\n"
+        "1000,EUR,117.2,18.00"
+    )
+
 
 async def kurs_evra(update, ctx):
     uid = update.effective_user.id
@@ -676,10 +700,10 @@ async def kurs_evra(update, ctx):
         return await update.message.reply_text(
             "Format: /kurs_evra BUY SELL\nPrimer: /kurs_evra 117.2 118.0"
         )
-    
+
     buy_str = ctx.args[0]
     sell_str = ctx.args[1]
-    
+
     # Provera da li korisnik koristi zarez
     if "," in buy_str or "," in sell_str:
         return await update.message.reply_text(
@@ -692,7 +716,6 @@ async def kurs_evra(update, ctx):
         sell = float(sell_str)
     except ValueError:
         return await update.message.reply_text("❌ Kurs mora biti broj.")
-
 
     # ===== BASIC LOGIC CHECK =====
     if buy >= sell:
@@ -720,6 +743,7 @@ async def kurs_evra(update, ctx):
         f"Klikni potvrdi ili otkaži.",
         reply_markup=confirm_keyboard()
     )
+
 
 def validate_request(parts):
     try:
@@ -763,9 +787,11 @@ def validate_request(parts):
 
     return None
 
+
 # ================= MESSAGE FLOW ==================
 
 pending_requests = {}
+
 
 async def handle_text(update, ctx):
     uid = update.effective_user.id
@@ -816,6 +842,7 @@ async def handle_text(update, ctx):
         (get_admin_commands() if is_admin(uid) else get_user_commands())
     )
 
+
 async def location_handler(update: Update, ctx):
     query = update.callback_query
     uid = query.from_user.id
@@ -854,6 +881,7 @@ async def location_handler(update: Update, ctx):
         reply_markup=confirm_keyboard()
     )
 
+
 # ================= MAIN ==================
 
 def main():
@@ -885,6 +913,7 @@ def main():
 
     print("Bot started...")
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
