@@ -17,14 +17,6 @@ MAX_BUY_RATE = 122  # 122 RSD za 1 EUR
 MIN_SPREAD = 0.1  # minimalna razlika buy/sell
 MAX_SPREAD = 4.0  # maksimalna razlika buy/sell
 
-# privremena komanda da vidimo chat_id grupe
-async def test_group_id(update, ctx):
-    chat_id = update.effective_chat.id
-    await update.message.reply_text(
-        f"📌 Chat ID ove grupe je: {chat_id}\n"
-        f"(koristi ga u kodu za slanje poruka u grupu)"
-    )
-
 # ===== GLOBAL CONFIRM STORAGE =====
 pending_confirm = {}
 
@@ -227,8 +219,12 @@ async def confirm_handler(update: Update, ctx):
         # send adminu
         await ctx.bot.send_message(ADMIN_ID, msg)
 
+        # send u grupu
+        GROUP_ID = -5021696516
+        await ctx.bot.send_message(GROUP_ID, msg)
+
         con.close()
-        return await query.edit_message_text("✅ Zahtev je poslat adminu.")
+        return await query.edit_message_text("✅ Zahtev je poslat adminu i u grupu.")
 
 
 # ================= COMMANDS ADMIN ==================
@@ -686,14 +682,14 @@ async def kurs_get(update, ctx):
         formatted_time = time_str
 
     await update.message.reply_text(
-	f"💱 Kurs evra:\n"
-	f"Kupovni: {buy}\n"
-	f"Prodajni: {sell}\n"
-	f"Ažurirano: {formatted_time}\n\n"
-	"Unesite zahtev u formatu:\n"
-	"IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
-	"Primer:\n"
-	"1000,EUR,117.2,18.00"
+        f"💱 Kurs evra:\n"
+        f"Kupovni: {buy}\n"
+        f"Prodajni: {sell}\n"
+        f"Ažurirano: {formatted_time}\n\n"
+        "Unesite zahtev u formatu:\n"
+        "IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
+        "Primer:\n"
+        "1000,EUR,117.2,18.00"
     )
 
 
@@ -803,6 +799,9 @@ pending_requests = {}
 
 
 async def handle_text(update, ctx):
+    if update.effective_chat.type != "private":
+        return  # ne reaguje na poruke u grupi
+
     uid = update.effective_user.id
     role = get_role(uid)
     if not role:
@@ -919,9 +918,6 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     app.add_handler(MessageHandler(filters.COMMAND, unknown_command))
-    
-    # test komanda za grupu
-    app.add_handler(CommandHandler("test_group_id", test_group_id))
 
     print("Bot started...")
     app.run_polling()
@@ -1591,14 +1587,14 @@ async def kurs_get(update, ctx):
         formatted_time = time_str
 
     await update.message.reply_text(
-	f"💱 Kurs evra:\n"
-	f"Kupovni: {buy}\n"
-	f"Prodajni: {sell}\n"
-	f"Ažurirano: {formatted_time}\n\n"
-	"Unesite zahtev u formatu:\n"
-	"IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
-	"Primer:\n"
-	"1000,EUR,117.2,18.00"
+        f"💱 Kurs evra:\n"
+        f"Kupovni: {buy}\n"
+        f"Prodajni: {sell}\n"
+        f"Ažurirano: {formatted_time}\n\n"
+        "Unesite zahtev u formatu:\n"
+        "IZNOS,VALUTA(EUR/RSD),KURS,ROK\n"
+        "Primer:\n"
+        "1000,EUR,117.2,18.00"
     )
 
 
@@ -1824,9 +1820,6 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     app.add_handler(MessageHandler(filters.COMMAND, unknown_command))
-    
-    # test komanda za grupu
-    app.add_handler(CommandHandler("test_group_id", test_group_id))
 
     print("Bot started...")
     app.run_polling()
