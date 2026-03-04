@@ -229,7 +229,7 @@ async def confirm_handler(update: Update, ctx):
 
 # ================= COMMANDS ADMIN ==================
 
-async def private_only(func):
+def private_only(func):
     async def wrapper(update, ctx):
         if update.effective_chat.type != "private":
             return  # ignorise komande iz grupa
