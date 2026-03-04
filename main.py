@@ -229,6 +229,13 @@ async def confirm_handler(update: Update, ctx):
 
 # ================= COMMANDS ADMIN ==================
 
+async def private_only(func):
+    async def wrapper(update, ctx):
+        if update.effective_chat.type != "private":
+            return  # ignorise komande iz grupa
+        return await func(update, ctx)
+    return wrapper
+
 def admin_contact_text():
     return f'\n\n📩 <a href="tg://user?id={ADMIN_ID}">Kontaktirajte admina</a>'
 
@@ -897,18 +904,18 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
     # start
-    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("start", private_only(start)))
 
     # kurs
-    app.add_handler(CommandHandler("kurs_evra", kurs_evra))
+    app.add_handler(CommandHandler("kurs_evra", private_only(kurs_evra)))
 
     # admin komande
-    app.add_handler(CommandHandler("add", add_user))
-    app.add_handler(CommandHandler("delete", del_user))
-    app.add_handler(CommandHandler("list_users", list_users))
-    app.add_handler(CommandHandler("add_location", add_location))
-    app.add_handler(CommandHandler("list_locations", list_locations))
-    app.add_handler(CommandHandler("help", admin_help))
+    app.add_handler(CommandHandler("add", private_only(add_user)))
+    app.add_handler(CommandHandler("delete", private_only(del_user)))
+    app.add_handler(CommandHandler("list_users", private_only(list_users)))
+    app.add_handler(CommandHandler("add_location", private_only(add_location)))
+    app.add_handler(CommandHandler("list_locations", private_only(list_locations)))
+    app.add_handler(CommandHandler("help", private_only(admin_help)))
 
     app.add_handler(CallbackQueryHandler(admin_location_toggle_handler, pattern="^ADMIN_LOC_"))
     app.add_handler(CallbackQueryHandler(location_handler, pattern="^LOC_"))
